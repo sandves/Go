@@ -10,34 +10,27 @@
 
  func main() {
 	 service := ":1201"
-	 tcpAddr, err := net.ResolveTCPAddr("tcp", service)
+	 udpAddr, err := net.ResolveUDPAddr("udp", service)
 	 checkError(err)
 
-	 listener, err := net.ListenTCP("tcp", tcpAddr)
+	 conn, err := net.ListenUDP("udp", udpAddr)
 	 checkError(err)
 
 	 for {
-		 conn, err := listener.Accept()
-		 if err != nil {
-			 continue
-		 }
 		 handleClient(conn)
-		 conn.Close() //we're finished
 	 }
  }
 
- func handleClient(conn net.Conn) {
+ func handleClient(conn *net.UDPConn) {
 	 var buf[512]byte
-	 for {
-		 n, err := listener.Accept()
-		 if err != nil {
-			return
-		 }
-		 fmt.Println(string(buf[:0]))
-		 _, err2 := conn.Write(buf[0:n])
-		 if err2 != nil {
-			 return
-		 }
+	 n, addr, err := conn.ReadFromUDP(buf[0:])
+	 if err != nil {
+	 return
+	 }
+	 fmt.Println(string(buf[:0]))
+	 _, err2 := conn.WriteToUDP(buf[0:n], addr)
+	 if err2 != nil {
+		 return
 	 }
  }
 
