@@ -1,4 +1,4 @@
-/* UDPEchoClient
+/* TCPEchoClient
  */
 package main
 
@@ -14,9 +14,9 @@ func main() {
 		os.Exit(1)
 	}
 	service := os.Args[1]
-	udpAddr, err := net.ResolveUDPAddr("udp", service)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	checkError(err)
-	conn, err := net.DialUDP("udp", nil, udpAddr)
+	conn, err := net.DialTCP("tcp", nil, udpAddr)
 	checkError(err)
 
 	_, err = conn.Write([]byte("hello echo"))
