@@ -21,12 +21,12 @@ type KeyValue struct {
 	Map map[string]string
 }
 
-func (kv *KeyValue) Insert(input Pari, reply *bool) error {
+func (kv *KeyValue) Insert(input Pair, reply *bool) error {
 	kv.lock.Lock()
 	kv.Map[input.Key]=input.Value
 	kv.lock.Unlock()
 	*reply = true
-	fmt.Printf("inserted Key %v´n", input.Key, input.Value)
+	fmt.Printf("inserted Key %v an value %v\n", input.Key, input.Value)
 	return nil
 }
 
@@ -53,7 +53,7 @@ func main() {
 	checkError(err)
 
 	//This works:
-	rcp.Accept(listener)
+	go rpc.Accept(listener)
 
 	/* and so does this:
 	for {
