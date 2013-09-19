@@ -1,4 +1,4 @@
-pakcage main
+package main
 
 import (
 	"net/rpc"
@@ -18,14 +18,14 @@ func main() {
 	}
 	service := os.Args[1]
 
-	client, err := rpc.Dial("tcp" service)
+	client, err := rpc.Dial("tcp", service)
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}
 	//Synchronous call
 	pair := Pair{"hello", "world"}
 	var success bool
-	err = client.Call("KeyValue.Insert", pair, &reply)
+	err = client.Call("KeyValue.Insert", pair, &success)
 	if err != nil {
 		log.Fatal("KeyValue error:", err)
 	}
