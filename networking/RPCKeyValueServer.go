@@ -52,17 +52,13 @@ func main() {
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	checkError(err)
 
-	//This works:
-	go rpc.Accept(listener)
-
-	/* and so does this:
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			continue
 		}
-		rpc.ServeConn(conn)
-	}*/
+		go rpc.ServeConn(conn)
+	}
 }
 
 func checkError(err error) {
