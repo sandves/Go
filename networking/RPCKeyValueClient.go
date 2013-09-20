@@ -36,12 +36,12 @@ func InsertAndLookup(client *rpc.Client, pairNumber int) {
 	pair := Pair{"key" + i, "world" + i}
 
 	var success bool
-	err := *client.Call("KeyValue.Insert", pair, &success)
+	err := client.Call("KeyValue.Insert", pair, &success)
 	checkError(err)
-	fmt.Printf("Insert of key %s and value %s was successful: %b\n", pair.Key, pair.Value, success)
+	fmt.Printf("Insert of key %s and value %s was successful: %t\n", pair.Key, pair.Value, success)
 
 	var insertedValue string
-	err = *client.Call("KeyValue.Lookup", pair.Key, &insertedValue)
+	err = client.Call("KeyValue.Lookup", pair.Key, &insertedValue)
 	checkError(err)
 	if insertedValue == pair.Value {
 		fmt.Println("Confirmation that the pair was stored")

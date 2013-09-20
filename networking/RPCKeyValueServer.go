@@ -26,7 +26,6 @@ func (kv *KeyValue) Insert(input Pair, reply *bool) error {
 	kv.Map[input.Key]=input.Value
 	kv.lock.Unlock()
 	*reply = true
-	fmt.Printf("inserted Key %v an value %v\n", input.Key, input.Value)
 	return nil
 }
 
@@ -34,7 +33,6 @@ func (kv* KeyValue) Lookup(input string, reply *string) error {
 	kv.lock.Lock()
 	if v, ok := kv.Map[input]; ok {
 		*reply = v
-		fmt.Println(v)
 	} else {
 		*reply = "not found"
 	}
