@@ -9,14 +9,9 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.FprintF(os.Stderr, "Usage: echocl host:port\n")
-		os.Exit(1)
-	}
-	service := os.Args[1]
-	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", ":1201")
 	checkError(err)
-	conn, err := net.DialTCP("tcp", nil, udpAddr)
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	checkError(err)
 
 	_, err = conn.Write([]byte("hello echo"))
