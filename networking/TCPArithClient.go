@@ -1,10 +1,10 @@
 package main
 
 import (
-	"net/rpc"
 	"fmt"
-	"log"
+	"net/rpc"
 	"os"
+	"strconv"
 )
 
 type Pair struct {
@@ -12,33 +12,47 @@ type Pair struct {
 }
 
 func main() {
-	if len(os.Args) !=2 {
-		fmt.Println("Usage: ", os.Args[0], "server:port")
-		os.Exit(1)
-	}
-	service := os.Args[1]
+	client, err := rpc.Dial("tcp", ":12110")
+	checkError(err)
 
-	client, err := rpc.Dial("tcp", service)
-	if err != nil {
-		log.Fatal("dialing:", err)
+	numberOfGoroutines := 5
+	callReturned := make(chan bool)
+
+	for i := 0; i < numberOfGoroutines; i++ {
+		go func(i int) {
+			InsertAndLookup(client, i)
+			callReturned <- true
+		}(i)
 	}
-	//Synchronous call
-	pair := Pair{"hello", "world"}
+
+	for i := 0; i < numberOfGoroutines; i++ {
+		<-callReturned
+	}
+	fmt.Println("Finished!")
+}
+
+func InsertAndLookup(client *rpc.Client, pairNumber int) {
+	var i string = strconv.Itoa(pairNumber)
+	pair := Pair{"key" + i, "world" + i}
+
 	var success bool
-	err = client.Call("KeyValue.Insert", pair, &success)
-	if err != nil {
-		log.Fatal("KeyValue error:", err)
-	}
-	fmt.Printf("Insert of key %s and value %s was successful: %b", pair.Key, pair.Value, success)
+	err := *client.Call("KeyValue.Insert", pair, &success)
+	checkError(err)
+	fmt.Printf("Insert of key %s and value %s was successful: %b\n", pair.Key, pair.Value, success)
 
 	var insertedValue string
-	err = client.Call("KeyValue.Lookup", pair.Key, &insertedValue)
-	if err != nil {
-		log.Fatal("KeyValue error: ", err)
-	}
+	err = *client.Call("KeyValue.Lookup", pair.Key, &insertedValue)
+	checkError(err)
 	if insertedValue == pair.Value {
-		fmt.Printf("Confirmation that the pair was stored")
+		fmt.Println("Confirmation that the pair was stored")
 	} else {
-		fmt.Printf("The value %s was not found with key %s", pair.Value, pair.Key)
+		fmt.Printf("The value %s was not found with key %s\n", pair.Value, pair.Key)
+	}
+}
+
+func checkError(err error) {
+	if err != nil {
+		fmt.Println("Fatal error ", err.Error())
+		os.Exit(1)
 	}
 }
