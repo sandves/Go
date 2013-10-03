@@ -1,10 +1,13 @@
 package lab4
 
+import "sync"
+
 const DefaultCap = 10
 
 type SliceStack struct {
 	slice []interface{}
 	top   int
+	stackMu sync.Mutex
 }
 
 func NewSliceStack() *SliceStack {
@@ -19,6 +22,8 @@ func (ss *SliceStack) Len() int {
 }
 
 func (ss *SliceStack) Push(value interface{}) {
+	ss.stackMu.Lock()
+	defer ss.stackMu.Unlock()
 	ss.top++
 
 	if ss.top == len(ss.slice) {
@@ -32,10 +37,11 @@ func (ss *SliceStack) Push(value interface{}) {
 }
 
 func (ss *SliceStack) Pop() (value interface{}) {
+	ss.stackMu.Lock()
+	defer ss.stackMu.Unlock()
 	if ss.top > -1 {
 		defer func() { ss.top-- }()
 		return ss.slice[ss.top]
 	}
-
 	return nil
 }
