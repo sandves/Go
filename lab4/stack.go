@@ -20,6 +20,5 @@ func (us *UnsafeStack) Pop() (value interface{}) {
 		us.size--
 		return
 	}
-
 	return nil
 }

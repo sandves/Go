@@ -27,6 +27,5 @@ func (ss *SafeStack) Pop() (value interface{}) {
 		ss.size--
 		return
 	}
-
 	return nil
 }
