@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"time"
+	"github.com/sandves/zaplab/chzap"
 )
 
 func main() {
@@ -14,7 +15,7 @@ func main() {
 	checkError(err)
 		for {
 		handleClient(sock)
-		time.Sleep((time.Second/2))
+		time.Sleep((time.Second))
 	}
 }
 
@@ -22,7 +23,9 @@ func handleClient(conn *net.UDPConn) {
 	var buf [1024]byte
 	n, _, err := conn.ReadFromUDP(buf[0:])
 	checkError(err)
-	fmt.Println(string(buf[:n]))
+	str := string(buf[:n])
+	var channelZap *chzap.ChZap = chzap.NewChZap(str)
+	fmt.Printf("%s\n", channelZap.String())
 }
 
 func checkError(err error) {
