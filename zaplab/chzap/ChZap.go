@@ -1,41 +1,45 @@
 package chzap
 
 import (
-	"net"
-	"time"
-	"strings"
 	"fmt"
+	"net"
+	"strings"
+	"time"
 )
 
 const timeLayout = "2006/01/02, 15:04:05"
 
 type ChZap struct {
-	Date time.Time
-	IP net.IP
+	Date   time.Time
+	IP     net.IP
 	FromCh string
-	ToCh string
+	ToCh   string
 }
 
 func NewChZap(chzap string) *ChZap {
-	chzapArr := strings.Split(chzap, ", ")
-	dateOnly := chzapArr[0]
-	timeOnly := chzapArr[1]
-	dateTimeSlice := []string{dateOnly, timeOnly}
-	dateTime := strings.Join(dateTimeSlice, ", ")
-	date, err := time.Parse(timeLayout, dateTime)
+	chzapSlice := strings.Split(chzap, ", ")
+	if len(chzapSlice) == 5 {
+		dateOnly := chzapSlice[0]
+		timeOnly := chzapSlice[1]
+		dateTimeSlice := []string{dateOnly, timeOnly}
+		dateTime := strings.Join(dateTimeSlice, ", ")
+		date, err := time.Parse(timeLayout, dateTime)
 
-	ip := net.ParseIP(chzapArr[2])
-	fromCh := chzapArr[3]
-	toCh := chzapArr[4]
+		ip := net.ParseIP(chzapSlice[2])
+		fromCh := chzapSlice[3]
+		toCh := chzapSlice[4]
 
-	if err != nil {
-		fmt.Println(err)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		return &ChZap{date, ip, fromCh, toCh}
+	} else {
+		return new(ChZap)
 	}
-
-	return &ChZap{date, ip, fromCh, toCh}
 }
 
-func(ch *ChZap) String() string {
+func (ch *ChZap) String() string {
 	s := []string{
 		ch.Date.Format(timeLayout),
 		ch.IP.String(),
