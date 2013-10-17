@@ -12,8 +12,8 @@ const timeLayout = "2006/01/02, 15:04:05"
 type ChZap struct {
 	Date   time.Time
 	IP     net.IP
-	FromCh string
-	ToCh   string
+	FromChan string
+	ToChan   string
 }
 
 func NewChZap(chzap string) *ChZap {
@@ -43,8 +43,8 @@ func (ch *ChZap) String() string {
 	s := []string{
 		ch.Date.Format(timeLayout),
 		ch.IP.String(),
-		ch.FromCh,
-		ch.ToCh,
+		ch.FromChan,
+		ch.ToChan,
 	}
 	return strings.Join(s, ", ")
 }
