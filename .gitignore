@@ -2,3 +2,5 @@ lab4/cpu_safe.out
 lab4/memcsp.out
 lab4/lab4.test
 lab4/cpucsp.out
+zaplab/zapserver/zapserver
+zaplab/zapserver/*.mprof
