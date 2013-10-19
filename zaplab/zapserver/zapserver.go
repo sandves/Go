@@ -1,23 +1,21 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"github.com/sandves/zaplab/chzap"
+	"github.com/sandves/zaplab/ztorage"
 	"net"
 	"os"
 	"os/signal"
+	"runtime/pprof"
 	"strings"
 	"time"
-	"github.com/sandves/zaplab/ztorage"
-	"github.com/sandves/zaplab/chzap"
-	"runtime/pprof"
-	"flag"
 )
 
 var zaps *ztorage.Zaps
 
 func main() {
-	var memprofile = flag.String("memprofile", "", "write memory profile to this file")
-	flag.Parse()
 
 	addr, err := net.ResolveUDPAddr("udp", "224.0.1.130:10000")
 	checkError(err)
@@ -25,23 +23,13 @@ func main() {
 	checkError(err)
 	zaps = ztorage.NewZapStore()
 
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Kill, os.Interrupt)
-
 	go handleClient(sock)
 	go topTenChannels()
 	//go computeViewers("NRK1")
 	//go computeViewers("TV2 Norge")
 	//go computeZaps()
 
-	<-signalChan
-	if *memprofile != "" {
-		f, err := os.Create(*memprofile)
-		checkError(err)
-		pprof.WriteHeapProfile(f)
-		f.Close()
-		return
-	}
+	writeMemProfifle()
 }
 
 func handleClient(conn *net.UDPConn) {
@@ -63,9 +51,24 @@ func topTenChannels() {
 		fmt.Println()
 		topTen := zaps.TopTenChannels()
 		for i := range topTen {
-			fmt.Printf("Channel %d: %s\n", (i+1),  topTen[i])
+			fmt.Printf("Channel %d: %s\n", (i + 1), topTen[i])
 		}
 		fmt.Println()
+	}
+}
+
+func writeMemProfifle() {
+	var memprofile = flag.String("memprofile", "", "write memory profile to this file")
+	flag.Parse()
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Kill, os.Interrupt)
+	<-signalChan
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		checkError(err)
+		pprof.WriteHeapProfile(f)
+		f.Close()
+		return
 	}
 }
 
