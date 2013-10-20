@@ -34,9 +34,9 @@ func NewChZap(chzap string) *ChZap {
 
 		return &ChZap{date, ip, fromCh, toCh}
 	} else {
-		//Return a zero initialized ChZap if
-		//the given string is a StatusChange
-		//and not a Zap Event
+		/*Return a zero initialized ChZap if
+		the given string is a StatusChange
+		and not a Zap Event*/
 		return new(ChZap)
 	}
 }

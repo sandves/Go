@@ -57,6 +57,7 @@ func topTenChannels() {
 	}
 }
 
+//if the memprofile flag was specified, write a heap profile to file
 func writeMemProfifle() {
 	var memprofile = flag.String("memprofile", "", "write memory profile to this file")
 	flag.Parse()
