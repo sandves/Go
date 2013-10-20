@@ -38,14 +38,14 @@ func (zs Zaps) StoreZap(z chzap.ChZap) {
 	if _, ok := zs[z.ToChan]; !ok {
 		zs[z.ToChan] = 0
 	}
-	if _, ok = zs[z.FromChan]; !ok {
+	if _, ok := zs[z.FromChan]; !ok {
 		zs[z.FromChan] = 0
 	}
 
 	/*if a viewer zaps to a channel, increment the
 	number of viewers by one.
-	if a viewer leaves a channel, decrement the number*/
-	of viewers by one.
+	if a viewer leaves a channel, decrement the number
+	of viewers by one.*/
 	for key, _ := range zs {
 		if z.ToChan == key {
 			zs[key]++
