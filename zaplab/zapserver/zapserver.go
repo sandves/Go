@@ -6,6 +6,7 @@ import (
 	"github.com/sandves/zaplab/chzap"
 	"github.com/sandves/zaplab/ztorage"
 	"net"
+	"net/rpc"
 	"os"
 	"os/signal"
 	"runtime/pprof"
@@ -13,26 +14,38 @@ import (
 	"time"
 )
 
-var zaps *ztorage.Zaps
+type ZapServer struct {
+	zaps *ztorage.Zaps
+}
+
+type Subscriber interface {
+	Subscribe(rate int, reply *chan string) error
+}
+
+var zaps *ZapServer
 
 func main() {
 
-	addr, err := net.ResolveUDPAddr("udp", "224.0.1.130:10000")
+	udpAddr, err := net.ResolveUDPAddr("udp", "224.0.1.130:10000")
 	checkError(err)
-	sock, err := net.ListenMulticastUDP("udp", nil, addr)
+	sock, err := net.ListenMulticastUDP("udp", nil, udpAddr)
 	checkError(err)
-	zaps = ztorage.NewZapStore()
 
-	go handleClient(sock)
-	go topTenChannels()
-	//go computeViewers("NRK1")
-	//go computeViewers("TV2 Norge")
-	//go computeZaps()
+	tcpAddr, err := net.ResolveTCPAddr("tcp", ":12110")
+	checkError(err)
+	listener, err := net.ListenTCP("tcp", tcpAddr)
+	checkError(err)
+
+	zaps = &ZapServer{zaps: ztorage.NewZapStore()}
+	rpc.Register(zaps)
+
+	go zaps.handleZaps(sock)
+	go handleClient(listener)
 
 	writeMemProfifle()
 }
 
-func handleClient(conn *net.UDPConn) {
+func (zs *ZapServer) handleZaps(conn *net.UDPConn) {
 	for {
 		var buf [1024]byte
 		n, _, err := conn.ReadFromUDP(buf[0:])
@@ -41,19 +54,30 @@ func handleClient(conn *net.UDPConn) {
 		strSlice := strings.Split(str, ", ")
 		if len(strSlice) == 5 {
 			var channelZap *chzap.ChZap = chzap.NewChZap(str)
-			zaps.StoreZap(*channelZap)
+			zs.zaps.StoreZap(*channelZap)
 		}
 	}
 }
 
-func topTenChannels() {
-	for _ = range time.Tick(1 * time.Second) {
-		fmt.Println()
-		topTen := zaps.TopTenChannels()
-		for i := range topTen {
-			fmt.Printf("Channel %d: %s\n", (i + 1), topTen[i])
+func handleClient(listener *net.TCPListener) {
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			continue
 		}
-		fmt.Println()
+		go rpc.ServeConn(conn)
+	}
+}
+
+func (zs *ZapServer) topTenChannels(rate int, reply chan *string) {
+	for _ = range time.Tick(time.Duration(rate) * time.Second) {
+		topTen := zs.zaps.TopTenChannels()
+		var topTenStr *string
+		for i := range topTen {
+			*topTenStr += fmt.Sprintf("Channel %d: %s\n", (i + 1), topTen[i])
+		}
+		*topTenStr += "\n"
+		reply <- topTenStr
 	}
 }
 
@@ -73,19 +97,10 @@ func writeMemProfifle() {
 	}
 }
 
-/*func computeViewers(chName string) {
-	for _ = range time.Tick(1 * time.Second) {
-		numberOfViewers := zaps.ComputeViewers(chName)
-		fmt.Printf("%s: %d\n", chName, numberOfViewers)
-	}
+func Subscribe(rate int, reply chan *string) error {
+	go zaps.topTenChannels(rate, reply)
+	return nil
 }
-
-func computeZaps() {
-	for _ = range time.Tick(5 * time.Second) {
-		numberOfZaps := len(*zaps)
-		fmt.Printf("Total number of zaps: %d\n", numberOfZaps)
-	}
-}*/
 
 func checkError(err error) {
 	if err != nil {

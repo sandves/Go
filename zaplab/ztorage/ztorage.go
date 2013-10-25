@@ -4,31 +4,12 @@ import (
 	"github.com/sandves/zaplab/chzap"
 )
 
-//type Zaps []chzap.ChZap
 type Zaps map[string]int
 
 func NewZapStore() *Zaps {
-	//zs := make(Zaps, 0)
 	zs := make(Zaps)
 	return &zs
 }
-
-/*func (zs *Zaps) StoreZap(z chzap.ChZap) {
-	//*zs = append(*zs, z)
-}*/
-
-/*func (zs *Zaps) ComputeViewers(chName string) int {
-	viewers := 0
-	for _, v := range *zs {
-		if v.ToChan == chName {
-			viewers++
-		}
-		if v.FromChan == chName {
-			viewers--
-		}
-	}
-	return viewers
-}*/
 
 func (zs Zaps) StoreZap(z chzap.ChZap) {
 
@@ -38,14 +19,14 @@ func (zs Zaps) StoreZap(z chzap.ChZap) {
 	if _, ok := zs[z.ToChan]; !ok {
 		zs[z.ToChan] = 0
 	}
-	if _, ok = zs[z.FromChan]; !ok {
+	if _, ok := zs[z.FromChan]; !ok {
 		zs[z.FromChan] = 0
 	}
 
 	/*if a viewer zaps to a channel, increment the
 	number of viewers by one.
 	if a viewer leaves a channel, decrement the number*/
-	of viewers by one.
+	//of viewers by one.
 	for key, _ := range zs {
 		if z.ToChan == key {
 			zs[key]++
