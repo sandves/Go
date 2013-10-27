@@ -64,19 +64,20 @@ func handleClient(listener *net.TCPListener) {
 }
 
 func (zs *ZapServer) stats() string {
-	topTen := zs.zaps.TopTenChannels()
+	topTen := zs.Zaps.TopTenChannels()
 	var topTenStr string
 	for i := range topTen {
 		topTenStr += fmt.Sprintf("Channel %d: %s\n", (i + 1), topTen[i])
 	}
 	avgZapDur := zs.Zaps.AverageZapDuration().String()
-	topTenStr += fmt.Sprintf("\nAverage zap duration: %s", avgZapDur)
+	topTenStr += fmt.Sprintf("\nAverage zap duration: %s\n", avgZapDur)
 	return topTenStr
 }
 
 func Subscribe(conn net.Conn) {
-	stats := zaps.stats()
+	var stats string
 	for _ = range time.Tick(1 * time.Second) {
+		stats = zaps.stats()
 		_, err := conn.Write([]byte(stats))
 		if err != nil {
 			conn.Close()
