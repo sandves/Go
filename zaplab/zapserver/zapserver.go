@@ -14,7 +14,7 @@ import (
 )
 
 type ZapServer struct {
-	zaps *ztorage.Zaps
+	Zaps *ztorage.Zaps
 }
 
 var zaps *ZapServer
@@ -31,7 +31,7 @@ func main() {
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	checkError(err)
 
-	zaps = &ZapServer{zaps: ztorage.NewZapStore()}
+	zaps = &ZapServer{Zaps: ztorage.NewZapStore()}
 
 	go zaps.handleZaps(sock)
 	go handleClient(listener)
@@ -48,7 +48,7 @@ func (zs *ZapServer) handleZaps(conn *net.UDPConn) {
 		strSlice := strings.Split(str, ", ")
 		if len(strSlice) == 5 {
 			var channelZap *chzap.ChZap = chzap.NewChZap(str)
-			zs.zaps.StoreZap(*channelZap)
+			zs.Zaps.StoreZap(*channelZap)
 		}
 	}
 }
@@ -63,19 +63,21 @@ func handleClient(listener *net.TCPListener) {
 	}
 }
 
-func (zs *ZapServer) topTenChannels() string {
+func (zs *ZapServer) stats() string {
 	topTen := zs.zaps.TopTenChannels()
 	var topTenStr string
 	for i := range topTen {
 		topTenStr += fmt.Sprintf("Channel %d: %s\n", (i + 1), topTen[i])
 	}
+	avgZapDur := zs.Zaps.AverageZapDuration().String()
+	topTenStr += fmt.Sprintf("\nAverage zap duration: %s", avgZapDur)
 	return topTenStr
 }
 
 func Subscribe(conn net.Conn) {
-	top10 := zaps.topTenChannels()
+	stats := zaps.stats()
 	for _ = range time.Tick(1 * time.Second) {
-		_, err := conn.Write([]byte(top10))
+		_, err := conn.Write([]byte(stats))
 		if err != nil {
 			conn.Close()
 			break
