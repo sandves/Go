@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	"net/rpc"
+	"net"
 	"os"
 )
 
 func main() {
-	client, err := rpc.Dial("tcp", ":12110")
+	tcpAddr, err := net.ResolveIPAddr("tcp4", ":12110")
+	checkError(err)
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	checkError(err)
 
-	reply := make(chan string)
-	go SubscribeForStatistics(client, 1, reply)
+	go SubscribeAndPrintStatistics(client, 1, reply)
 
 	var str string
 	for {
@@ -22,10 +23,11 @@ func main() {
 	}
 }
 
-func SubscribeForStatistics(client *rpc.Client, rate int, reply chan string) {
-
-	err := client.Call("Zapserver.Subscribe", rate, &reply)
+func SubscribeAndPrintStatistics(conn *net.Conn) {
+	var stats [512]byte
+	_, err := conn.Read(stats[0:])
 	checkError(err)
+	fmt.Println(stats)
 }
 
 func checkError(err error) {

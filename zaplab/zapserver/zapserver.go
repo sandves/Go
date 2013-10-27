@@ -6,7 +6,6 @@ import (
 	"github.com/sandves/zaplab/chzap"
 	"github.com/sandves/zaplab/ztorage"
 	"net"
-	"net/rpc"
 	"os"
 	"os/signal"
 	"runtime/pprof"
@@ -16,10 +15,6 @@ import (
 
 type ZapServer struct {
 	zaps *ztorage.Zaps
-}
-
-type Subscriber interface {
-	Subscribe(rate int, reply *chan string) error
 }
 
 var zaps *ZapServer
@@ -37,7 +32,6 @@ func main() {
 	checkError(err)
 
 	zaps = &ZapServer{zaps: ztorage.NewZapStore()}
-	rpc.Register(zaps)
 
 	go zaps.handleZaps(sock)
 	go handleClient(listener)
@@ -65,19 +59,27 @@ func handleClient(listener *net.TCPListener) {
 		if err != nil {
 			continue
 		}
-		go rpc.ServeConn(conn)
+		go Subscribe(conn)
 	}
 }
 
-func (zs *ZapServer) topTenChannels(rate int, reply chan *string) {
+func (zs *ZapServer) topTenChannels() string {
+	topTen := zs.zaps.TopTenChannels()
+	var topTenStr *string
+	for i := range topTen {
+		*topTenStr += fmt.Sprintf("Channel %d: %s\n", (i + 1), topTen[i])
+	}
+	*topTenStr += "\n"
+}
+
+func Subscribe(conn *net.Conn) {
+	top10 := zaps.topTenChannels()
 	for _ = range time.Tick(time.Duration(rate) * time.Second) {
-		topTen := zs.zaps.TopTenChannels()
-		var topTenStr *string
-		for i := range topTen {
-			*topTenStr += fmt.Sprintf("Channel %d: %s\n", (i + 1), topTen[i])
+		_, err := conn.Write([]byte(top10))
+		if err != nil {
+			conn.Close()
+			break
 		}
-		*topTenStr += "\n"
-		reply <- topTenStr
 	}
 }
 
@@ -95,11 +97,6 @@ func writeMemProfifle() {
 		f.Close()
 		return
 	}
-}
-
-func Subscribe(rate int, reply chan *string) error {
-	go zaps.topTenChannels(rate, reply)
-	return nil
 }
 
 func checkError(err error) {
