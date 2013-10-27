@@ -12,22 +12,16 @@ func main() {
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	checkError(err)
 
-	go SubscribeAndPrintStatistics(client, 1, reply)
-
-	var str string
-	for {
-		select {
-		case str = <-reply:
-			fmt.Println(str)
-		}
-	}
+	SubscribeAndPrintStatistics(client, 1, reply)
 }
 
 func SubscribeAndPrintStatistics(conn *net.Conn) {
-	var stats [512]byte
-	_, err := conn.Read(stats[0:])
-	checkError(err)
-	fmt.Println(stats)
+	for {
+		var stats [512]byte
+		_, err := conn.Read(stats[0:])
+		checkError(err)
+		fmt.Println(stats)
+	}
 }
 
 func checkError(err error) {
